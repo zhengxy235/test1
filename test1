@@ -1,0 +1,139 @@
+import os
+import random
+import time
+
+# --------------------------
+# 学生类：封装学生基本信息
+# --------------------------
+class Student:
+    def __init__(self, student_id, name, gender, class_name, college):
+        self.student_id = student_id
+        self.name = name
+        self.gender = gender
+        self.class_name = class_name
+        self.college = college
+
+    def __str__(self):
+        return (
+            f"学号: {self.student_id}\n"
+            f"姓名: {self.name}\n"
+            f"性别: {self.gender}\n"
+            f"班级: {self.class_name}\n"
+            f"学院: {self.college}"
+        )
+
+# --------------------------
+# 系统控制类
+# --------------------------
+class ExamSystem:
+    def __init__(self):
+        self.students = []
+        # ========== 学生信息内置在这里 ==========
+        self.init_inner_students()
+
+    def init_inner_students(self):
+        """内置学生原始数据，无需外部txt"""
+        inner_data = [
+            ("2001101", "张三", "男", "1", "电气"),
+            ("2001102", "李四", "女", "2", "能动"),
+            ("2001103", "魏五", "男", "3", "能动"),
+            ("2001104", "丁七", "女", "1", "电气"),
+            ("2001105", "王八", "男", "2", "计算机"),
+            ("2001106", "何九", "女", "3", "计算机"),
+            ("2001107", "赵十", "男", "1", "外国语"),
+            ("2001108", "吴一", "女", "2", "外国语"),
+            ("2001109", "蓝二", "男", "3", "经管"),
+            ("2001110", "刘六", "女", "1", "经管")
+        ]
+        # 批量创建学生对象
+        for sid, name, gen, cls, col in inner_data:
+            self.students.append(Student(sid, name, gen, cls, col))
+
+    def search_student(self):
+        """1. 按学号查询"""
+        student_id = input("请输入要查询的学号：").strip()
+        found = False
+        for s in self.students:
+            if s.student_id == student_id:
+                print("\n查询结果：")
+                print(s)
+                found = True
+                break
+        if not found:
+            print("未找到该学号学生！")
+
+    def random_call(self):
+        """2. 随机点名"""
+        try:
+            cnt = int(input("请输入点名人数：").strip())
+            total = len(self.students)
+            if cnt <= 0 or cnt > total:
+                print(f"请输入1~{total}之间的数字！")
+                return
+            selected = random.sample(self.students, cnt)
+            print("\n随机点名结果：")
+            for i, s in enumerate(selected, 1):
+                print(f"{i}. {s.name}（学号：{s.student_id}）")
+        except ValueError:
+            print("输入错误，请输入整数！")
+
+    def generate_exam_arrangement(self):
+        """3. 生成考场安排表.txt"""
+        shuffled = random.sample(self.students, len(self.students))
+        now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        with open("考场安排表.txt", "w", encoding="utf-8") as f:
+            f.write(f"生成时间：{now}\n")
+            f.write("考场座位号\t姓名\t学号\n")
+            for seat, s in enumerate(shuffled, 1):
+                f.write(f"{seat}\t{s.name}\t{s.student_id}\n")
+        print("✅ 考场安排表已生成：考场安排表.txt")
+        return shuffled
+
+    def generate_admission_tickets(self, shuffled_students):
+        """4. 生成准考证文件夹+单人准考证"""
+        if not os.path.exists("准考证"):
+            os.mkdir("准考证")
+        for seat, s in enumerate(shuffled_students, 1):
+            filename = f"准考证/{seat}.txt"
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(f"考场座位号：{seat}\n")
+                f.write(f"姓名：{s.name}\n")
+                f.write(f"学号：{s.student_id}\n")
+        print("✅ 准考证已生成在【准考证】文件夹")
+
+    @staticmethod
+    def show_menu():
+        print("\n===== 学生考试管理系统 =====")
+        print("1. 学号查询学生信息")
+        print("2. 随机点名")
+        print("3. 生成考场安排表")
+        print("4. 生成准考证文件")
+        print("0. 退出系统")
+        print("============================")
+
+    def run(self):
+        shuffled_list = None
+        while True:
+            self.show_menu()
+            choice = input("请选择功能编号：").strip()
+            if choice == "0":
+                print("系统退出，再见~")
+                break
+            elif choice == "1":
+                self.search_student()
+            elif choice == "2":
+                self.random_call()
+            elif choice == "3":
+                shuffled_list = self.generate_exam_arrangement()
+            elif choice == "4":
+                if shuffled_list is None:
+                    print("⚠️ 请先执行【3.生成考场安排表】！")
+                else:
+                    self.generate_admission_tickets(shuffled_list)
+            else:
+                print("❌ 输入无效，请选择正确编号！")
+
+# 程序入口
+if __name__ == "__main__":
+    app = ExamSystem()
+    app.run()
