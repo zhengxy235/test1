@@ -28,11 +28,11 @@ class Student:
 class ExamSystem:
     def __init__(self):
         self.students = []
-        
+        # ========== 学生信息内置在这里 ==========
         self.init_inner_students()
 
     def init_inner_students(self):
-        
+        """内置学生原始数据，无需外部txt"""
         inner_data = [
             ("2001101", "张三", "男", "1", "电气"),
             ("2001102", "李四", "女", "2", "能动"),
