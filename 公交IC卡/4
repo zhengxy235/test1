@@ -3,3 +3,42 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+
+# ==================== 任务4：高峰小时系数计算 ====================
+print("=== 任务4：高峰小时系数计算 ===")
+
+# 1. 高峰小时识别
+hourly_vol = df['hour'].value_counts()
+peak_hour = hourly_vol.idxmax()
+peak_hour_count = hourly_vol.max()
+
+print(f"高峰小时：{peak_hour}:00 ~ {peak_hour+1}:00，刷卡量：{peak_hour_count} 次")
+
+# 筛选该高峰小时的数据
+peak_df = df[df['hour'] == peak_hour]
+
+# 2. 5分钟粒度统计
+# 将分钟数映射到5分钟窗口 (0-4 -> 0, 5-9 -> 5, ...)
+peak_df['5min'] = (peak_df['交易时间'].dt.minute // 5) * 5
+count_5min = peak_df['5min'].value_counts()
+max_5min_count = count_5min.max()
+max_5min_window = count_5min.idxmax()
+max_5min_time = f"{peak_hour:02d}:{max_5min_window:02d} ~ {peak_hour:02d}:{max_5min_window+5:02d}"
+
+# 3. 15分钟粒度统计
+peak_df['15min'] = (peak_df['交易时间'].dt.minute // 15) * 15
+count_15min = peak_df['15min'].value_counts()
+max_15min_count = count_15min.max()
+max_15min_window = count_15min.idxmax()
+max_15min_time = f"{peak_hour:02d}:{max_15min_window:02d} ~ {peak_hour:02d}:{max_15min_window+15:02d}"
+
+# 4. 计算 PHF
+PHF5 = peak_hour_count / (12 * max_5min_count)
+PHF15 = peak_hour_count / (4 * max_15min_count)
+
+print(f"最大5分钟刷卡量（{max_5min_time}）：{max_5min_count} 次")
+print(f"PHF5  = {peak_hour_count} / (12 × {max_5min_count}) = {PHF5:.4f}")
+print(f"最大15分钟刷卡量（{max_15min_time}）：{max_15min_count} 次")
+print(f"PHF15 = {peak_hour_count} / ( 4 × {max_15min_count}) = {PHF15:.4f}")
+
+print("-" * 50)
