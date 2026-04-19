@@ -3,3 +3,55 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+
+# ==================== 任务2：时间分布分析 ====================
+print("=== 任务2：时间分布分析 ===")
+
+# (a) 早晚时段刷卡量统计 (必须使用 numpy)
+# 筛选上车记录 (刷卡类型=0)
+onboard_mask = df['刷卡类型'].values == 0
+df_onboard = df[onboard_mask]
+
+# 使用 numpy 统计
+hour_vals = df_onboard['hour'].values
+total_count = len(hour_vals)
+
+# 定义条件
+early_mask = hour_vals < 7
+night_mask = hour_vals >= 22
+
+early_count = np.sum(early_mask)
+night_count = np.sum(night_mask)
+
+print(f"早峰前时段(07:00前)刷卡量: {early_count} 次")
+print(f"深夜时段(22:00后)刷卡量: {night_count} 次")
+print(f"早峰前时段占比: {early_count/total_count*100:.2f}%")
+print(f"深夜时段占比: {night_count/total_count*100:.2f}%")
+
+# (b) 24小时分布可视化
+plt.figure(figsize=(12, 6))
+# 统计每个小时的频次
+hour_counts = df_onboard['hour'].value_counts().sort_index()
+hours = np.arange(24)
+counts = [hour_counts.get(h, 0) for h in hours]
+
+# 设置颜色：早高峰和深夜为红色系，其他为蓝色系
+colors = []
+for h in hours:
+    if h < 7 or h >= 22:
+        colors.append('#FF6B6B')  # 红色突出显示
+    else:
+        colors.append('#4ECDC4')  # 蓝色
+
+plt.bar(hours, counts, color=colors, alpha=0.8)
+
+plt.title('全天24小时公交上车刷卡量分布', fontsize=16)
+plt.xlabel('小时 (时)', fontsize=12)
+plt.ylabel('刷卡量 (次)', fontsize=12)
+plt.xticks(hours[::2])  # 标签步长为2
+plt.grid(axis='y', linestyle='--', alpha=0.5)
+plt.tight_layout()
+plt.savefig('hour_distribution.png', dpi=150)
+plt.show()
+
+print("-" * 50)
