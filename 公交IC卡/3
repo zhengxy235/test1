@@ -3,3 +3,51 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+
+# ==================== 任务3：线路站点分析 ====================
+print("=== 任务3：线路站点分析 ===")
+
+def analyze_route_stops(df, route_col='线路号', stops_col='ride_stops'):
+    """
+    计算各线路乘客的平均搭乘站点数及其标准差。
+    Parameters
+    ----------
+    df : pd.DataFrame  预处理后的数据集
+    route_col : str    线路号列名
+    stops_col : str    搭乘站点数列名
+    Returns
+    -------
+    pd.DataFrame  包含列：线路号、mean_stops、std_stops，按 mean_stops 降序排列
+    """
+    # 分组计算
+    grouped = df.groupby(route_col)[stops_col].agg(['mean', 'std']).reset_index()
+    grouped.columns = [route_col, 'mean_stops', 'std_stops']
+    # 降序排列
+    result = grouped.sort_values('mean_stops', ascending=False).reset_index(drop=True)
+    return result
+
+# 调用函数
+result_df = analyze_route_stops(df)
+print("各线路平均搭乘站点数（前10行）：")
+print(result_df.head(10))
+
+# 可视化 (seaborn 水平条形图)
+top15_data = result_df.head(15)
+plt.figure(figsize=(10, 8))
+# Seaborn barplot 默认是垂直的，为了水平，我们交换x和y，并使用xerr
+barplot = sns.barplot(data=top15_data, 
+                      x='mean_stops', 
+                      y='线路号', 
+                      xerr=top15_data['std_stops'], 
+                      palette="Blues_d", 
+                      capsize=0.1)
+
+plt.title('线路平均搭乘站点数 Top15', fontsize=16)
+plt.xlabel('平均搭乘站点数', fontsize=12)
+plt.ylabel('线路号', fontsize=12)
+plt.xlim(0) # x轴从0开始
+plt.tight_layout()
+plt.savefig('route_stops.png', dpi=150)
+plt.show()
+
+print("-" * 50)
