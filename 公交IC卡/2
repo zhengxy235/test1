@@ -1,0 +1,47 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
+# 设置中文字体支持，防止图表乱码
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS', 'DejaVu Sans']
+plt.rcParams['axes.unicode_minus'] = False
+
+# ==================== 任务1：数据预处理 ====================
+print("=== 任务1：数据预处理 ===")
+
+# 1. 读取数据 (注意分隔符为制表符 \t)
+try:
+    df = pd.read_csv('ICData.csv', sep='\t')
+except FileNotFoundError:
+    # 如果文件不存在，尝试打印当前目录文件（用于调试）
+    import glob
+    print("当前目录文件:", glob.glob("*"))
+    raise FileNotFoundError("未找到 ICData.csv 文件，请确保文件与代码在同一目录下。")
+
+print("数据集前5行：")
+print(df.head())
+print(f"\n数据集形状: {df.shape}")
+print(f"各列数据类型:\n{df.dtypes}")
+
+# 2. 时间解析
+df['交易时间'] = pd.to_datetime(df['交易时间'])
+df['hour'] = df['交易时间'].dt.hour  # 新增 hour 列
+
+# 3. 构造衍生字段 & 删除异常
+df['ride_stops'] = (df['下车站点'] - df['上车站点']).abs()
+initial_len = len(df)
+df = df[df['ride_stops'] != 0]  # 删除 ride_stops 为 0 的行
+deleted_count = initial_len - len(df)
+print(f"\n删除 ride_stops 为 0 的异常记录数: {deleted_count} 行")
+
+# 4. 缺失值检查
+missing_values = df.isnull().sum()
+print(f"\n各列缺失值数量:\n{missing_values}")
+# 处理策略：删除含缺失值的行
+if missing_values.sum() > 0:
+    df.dropna(inplace=True)
+    print("处理策略：删除含缺失值的行。")
+
+print("-" * 50)
